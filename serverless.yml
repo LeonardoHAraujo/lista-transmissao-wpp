@@ -1,0 +1,58 @@
+service: serverless-wpp-send-message
+frameworkVersion: '3'
+custom:
+  dotenvVars: ${file(configs.js)}
+  # serverless-offline-sqs:
+  #   autoCreate: false # create queue if not exists
+  #   apiVersion: '2012-11-05'
+  #   endpoint: ${self:custom.dotenvVars.SQS_ENDPOINT, 'http://sqs:9324'}
+  #   region: us-east-1
+  #   accessKeyId: test
+  #   secretAccessKey: test
+  #   skipCacheInvalidation: false
+  serverless-offline:
+    httpPort: 4000
+  node_env:
+    dev: development
+    prod: production
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "*"
+      allowedMethods:
+        - POST
+      allowedHeaders:
+        - "*"
+  timeout: 120  # 2 minutos de execução do lambda
+  memorySize: 256
+  deploymentBucket:
+    name: ${self:custom.dotenvVars.DEPLOYMENT_BUCKET}
+  stage: ${opt:stage, 'prod'}
+  environment: ${file(configs.js)}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - events:*
+        - lambda:*
+        - sqs:*
+      Resource: '*'
+
+plugins:
+  # - serverless-offline-sqs
+  - serverless-plugin-scripts
+  - serverless-offline
+
+functions:
+  api:
+    handler: dist/src/main/api.handler
+    events:
+      - httpApi:
+          path: /send-wpp-cotation
+          method: post
+      - httpApi:
+          path: /send-wpp-contact
+          method: post
