@@ -22,8 +22,7 @@ jobs:
       Z_API_WEBHOOK_SECRET: ${{ secrets.Z_API_WEBHOOK_SECRET }}
       SOURCE_GROUP_ID: ${{ secrets.SOURCE_GROUP_ID }}
       BROADCAST_IDS: ${{ secrets.BROADCAST_IDS }}
-      IGNORE_FROM_ME: ${{ secrets.IGNORE_FROM_ME }}
-      ALLOWED_PARTICIPANT_PHONES: ${{ secrets.ALLOWED_PARTICIPANT_PHONES }}
+      IGNORE_FROM_ME: true
 
     steps:
       - uses: actions/checkout@v1
