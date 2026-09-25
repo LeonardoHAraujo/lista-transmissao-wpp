@@ -1,41 +1,49 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
 
-import { validateWppPayload } from './validation/validate-wpp-payload';
-import { validateWppContactPayload } from './validation/validate-wpp-contact-payload';
-import { sendWppMessage } from '../services/send-wpp-message.service';
-import { AUTH_TOKEN } from './constants/environment';
+import { evaluateReceivedMessage } from './validation/evaluate-received-message';
+import { Z_API_WEBHOOK_SECRET } from './constants/environment';
 import { badRequestErrorResponse } from '../helpers/bad-request-error-response.helper';
 import { notFoundErrorResponse } from '../helpers/not-found-error-response.helper';
 import { unauthorizedErrorResponse } from '../helpers/unauthorized-error-response.helper';
 import { successResponse } from '../helpers/success-response.helpe';
-import { sendWppContactMessage } from '../services/send-wpp-contact-message.service';
+import { forwardToBroadcasts } from '../services/forward-to-broadcast.service';
+
+const RECEIVED_WEBHOOK_ROUTE = 'POST /webhooks/z-api/received/{webhookSecret}';
 
 export const handler = async (event: APIGatewayProxyEventV2) => {
+  console.log('ROUTE: ', event.routeKey);
   console.log('BODY: ', event.body);
 
-  if (!event.headers['x-auth-key'] || event.headers['x-auth-key'] !== AUTH_TOKEN) return unauthorizedErrorResponse();
-  if (!event.body) return badRequestErrorResponse({ message: 'Request body is required.' });
-
-  const payload = JSON.parse(event.body);
-
   switch (event.routeKey) {
-    case 'POST /send-wpp-contact':
-      const validationWppContactResult = validateWppContactPayload(payload);
-      if (!validationWppContactResult.success) return badRequestErrorResponse(validationWppContactResult.errors);
-
-      await sendWppContactMessage(validationWppContactResult.data?.whatsapp!);
-      break;
-
-    case 'POST /send-wpp-cotation':
-      const validationWppResult = validateWppPayload(payload);
-      if (!validationWppResult.success) return badRequestErrorResponse(validationWppResult.errors);
-
-      await sendWppMessage(validationWppResult.data?.whatsapp!);
-      break;
+    case RECEIVED_WEBHOOK_ROUTE:
+      return handleReceivedWebhook(event);
 
     default:
       return notFoundErrorResponse('Endpoint not found.');
   }
-
-  return successResponse();
 };
+
+async function handleReceivedWebhook(event: APIGatewayProxyEventV2) {
+  const webhookSecret = event.pathParameters?.webhookSecret;
+  if (!Z_API_WEBHOOK_SECRET || webhookSecret !== Z_API_WEBHOOK_SECRET) {
+    return unauthorizedErrorResponse();
+  }
+
+  if (!event.body) return badRequestErrorResponse({ message: 'Request body is required.' });
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(event.body);
+  } catch {
+    return badRequestErrorResponse({ message: 'Invalid JSON body.' });
+  }
+
+  const decision = evaluateReceivedMessage(payload);
+  if (!decision.forward) {
+    console.log('Webhook ignored:', decision.reason);
+    return successResponse('Accepted.');
+  }
+
+  await forwardToBroadcasts(decision.message);
+  return successResponse('Accepted.');
+}
