@@ -15,12 +15,15 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
       # Service variables
-      DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET }}
       Z_API_INSTANCE_ID: ${{ secrets.Z_API_INSTANCE_ID }}
       Z_API_INSTANCE_TOKEN: ${{ secrets.Z_API_INSTANCE_TOKEN }}
       Z_API_SECURITY_TOKEN: ${{ secrets.Z_API_SECURITY_TOKEN }}
       Z_API_BASE_URL: ${{ secrets.Z_API_BASE_URL }}
-      AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+      Z_API_WEBHOOK_SECRET: ${{ secrets.Z_API_WEBHOOK_SECRET }}
+      SOURCE_GROUP_ID: ${{ secrets.SOURCE_GROUP_ID }}
+      BROADCAST_IDS: ${{ secrets.BROADCAST_IDS }}
+      IGNORE_FROM_ME: ${{ secrets.IGNORE_FROM_ME }}
+      ALLOWED_PARTICIPANT_PHONES: ${{ secrets.ALLOWED_PARTICIPANT_PHONES }}
 
     steps:
       - uses: actions/checkout@v1

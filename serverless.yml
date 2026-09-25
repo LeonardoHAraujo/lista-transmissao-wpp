@@ -51,8 +51,5 @@ functions:
     handler: dist/src/main/api.handler
     events:
       - httpApi:
-          path: /send-wpp-cotation
-          method: post
-      - httpApi:
-          path: /send-wpp-contact
+          path: /webhooks/z-api/received/{webhookSecret}
           method: post
