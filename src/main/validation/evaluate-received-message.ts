@@ -74,10 +74,6 @@ export function evaluateReceivedMessage(payload: unknown): ReceivedMessageDecisi
     return { forward: false, reason: 'source group mismatch' };
   }
 
-  if (!message.image) {
-    return { forward: false, reason: 'message has no imageUrl' };
-  }
-
   if (!message.messageId) {
     return { forward: false, reason: 'missing messageId' };
   }
@@ -95,8 +91,8 @@ export function evaluateReceivedMessage(payload: unknown): ReceivedMessageDecisi
     message: {
       messageId: message.messageId,
       messagePhone: message.phone!,
-      imageUrl: message.image.imageUrl,
-      caption: message.image.caption,
+      imageUrl: message.image?.imageUrl ?? '',
+      caption: message.image?.caption ?? '',
     },
   };
 }
