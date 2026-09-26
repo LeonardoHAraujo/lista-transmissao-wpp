@@ -23,6 +23,7 @@ jobs:
       SOURCE_GROUP_ID: ${{ secrets.SOURCE_GROUP_ID }}
       BROADCAST_IDS: ${{ secrets.BROADCAST_IDS }}
       IGNORE_FROM_ME: true
+      DEPLOYMENT_BUCKET: wpp-send-message-serverless-deploy
 
     steps:
       - uses: actions/checkout@v1
