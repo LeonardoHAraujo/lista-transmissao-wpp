@@ -27,8 +27,8 @@ provider:
         - POST
       allowedHeaders:
         - "*"
-  timeout: 120  # 2 minutos de execução do lambda
-  memorySize: 256
+  timeout: 30
+  memorySize: 128
   deploymentBucket:
     name: ${self:custom.dotenvVars.DEPLOYMENT_BUCKET}
   stage: ${opt:stage, 'prod'}
