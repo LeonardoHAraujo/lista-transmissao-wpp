@@ -49,6 +49,7 @@ plugins:
 functions:
   api:
     handler: dist/src/main/api.handler
+    timeout: 120
     environment:
       SEND_MESSAGE_QUEUE_URL: !Ref SendMessageQueue
     events:
