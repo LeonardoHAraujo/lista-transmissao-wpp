@@ -5,8 +5,10 @@ import { Z_API_WEBHOOK_SECRET } from './constants/environment';
 import { badRequestErrorResponse } from '../helpers/bad-request-error-response.helper';
 import { notFoundErrorResponse } from '../helpers/not-found-error-response.helper';
 import { unauthorizedErrorResponse } from '../helpers/unauthorized-error-response.helper';
+import { internalServerErrorResponse } from '../helpers/internal-server-error-response.helper';
 import { successResponse } from '../helpers/success-response.helpe';
-import { forwardToBroadcasts } from '../services/forward-to-broadcast.service';
+import { enqueueBroadcastSends } from '../services/enqueue-send.service';
+import { listBroadcastPhones } from '../services/list-broadcasts.service';
 
 const RECEIVED_WEBHOOK_ROUTE = 'POST /webhooks/z-api/received/{webhookSecret}';
 
@@ -44,6 +46,13 @@ async function handleReceivedWebhook(event: APIGatewayProxyEventV2) {
     return successResponse('Accepted.');
   }
 
-  await forwardToBroadcasts(decision.message);
+  try {
+    const phones = await listBroadcastPhones();
+    await enqueueBroadcastSends(decision.message, phones);
+  } catch (error) {
+    console.error('Falha ao enfileirar envios:', error);
+    return internalServerErrorResponse('Failed to enqueue messages.');
+  }
+
   return successResponse('Accepted.');
 }

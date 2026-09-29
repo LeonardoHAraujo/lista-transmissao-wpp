@@ -4,7 +4,7 @@ import {
   parseCsv,
 } from '../constants/environment';
 
-export interface ForwardableGroupImage {
+export interface ForwardableGroupMessage {
   messageId: string;
   messagePhone: string;
   imageUrl: string;
@@ -12,7 +12,7 @@ export interface ForwardableGroupImage {
 }
 
 export type ReceivedMessageDecision =
-  | { forward: true; message: ForwardableGroupImage }
+  | { forward: true; message: ForwardableGroupMessage }
   | { forward: false; reason: string };
 
 interface ReceivedImage {
@@ -27,6 +27,7 @@ interface ReceivedCallbackPayload {
   messageId?: string;
   participantPhone?: string | null;
   image?: ReceivedImage | null;
+  text?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -43,6 +44,11 @@ function readImage(value: unknown): ReceivedImage | null {
   };
 }
 
+function readText(value: unknown): string {
+  if (!isRecord(value)) return '';
+  return typeof value.message === 'string' ? value.message.trim() : '';
+}
+
 function readPayload(value: unknown): ReceivedCallbackPayload | null {
   if (!isRecord(value)) return null;
 
@@ -55,6 +61,7 @@ function readPayload(value: unknown): ReceivedCallbackPayload | null {
       ? value.participantPhone
       : undefined,
     image: isRecord(value.image) ? readImage(value.image) : value.image === null ? null : undefined,
+    text: readText(value.text),
   };
 }
 
@@ -86,13 +93,19 @@ export function evaluateReceivedMessage(payload: unknown): ReceivedMessageDecisi
     }
   }
 
+  const imageUrl = (message.image?.imageUrl ?? '').trim();
+  const caption = (imageUrl ? (message.image?.caption ?? '') : (message.text ?? '')).trim();
+  if (!imageUrl && !caption) {
+    return { forward: false, reason: 'missing image and text' };
+  }
+
   return {
     forward: true,
     message: {
       messageId: message.messageId,
       messagePhone: message.phone!,
-      imageUrl: message.image?.imageUrl ?? '',
-      caption: message.image?.caption ?? '',
+      imageUrl,
+      caption,
     },
   };
 }
