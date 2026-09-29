@@ -12,6 +12,9 @@ interface BroadcastListItem {
 
 export async function listBroadcastPhones(): Promise<string[]> {
   const allowedIds = new Set(parseCsv(BROADCAST_IDS));
+
+  console.log('allowedIds', allowedIds);
+
   if (allowedIds.size === 0) {
     console.error('BROADCAST_IDS is empty; skipping forward.');
     return [];
