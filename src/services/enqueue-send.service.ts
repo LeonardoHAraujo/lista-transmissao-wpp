@@ -5,6 +5,13 @@ import { ForwardableGroupMessage } from '../main/validation/evaluate-received-me
 import { QueuedSend } from './queued-send';
 
 const BATCH_SIZE = 10;
+const MIN_DELIVERY_DELAY_SECONDS = 5;
+const MAX_DELIVERY_DELAY_SECONDS = 10;
+
+function randomDeliveryDelaySeconds(): number {
+  const span = MAX_DELIVERY_DELAY_SECONDS - MIN_DELIVERY_DELAY_SECONDS + 1;
+  return MIN_DELIVERY_DELAY_SECONDS + Math.floor(Math.random() * span);
+}
 
 function createSqsClient(): SQSClient {
   return new SQSClient(SQS_ENDPOINT ? { endpoint: SQS_ENDPOINT } : {});
@@ -45,6 +52,7 @@ export async function enqueueBroadcastSends(
       Entries: chunk.map((body, index) => ({
         Id: String(index),
         MessageBody: JSON.stringify(body),
+        DelaySeconds: randomDeliveryDelaySeconds(),
       })),
     }));
 

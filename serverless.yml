@@ -49,7 +49,6 @@ plugins:
 functions:
   api:
     handler: dist/src/main/api.handler
-    timeout: 120
     environment:
       SEND_MESSAGE_QUEUE_URL: !Ref SendMessageQueue
     events:
@@ -59,10 +58,12 @@ functions:
 
   sendMessage:
     handler: dist/src/main/send-message.handler
+    reservedConcurrency: 3
     events:
       - sqs:
           arn: !GetAtt SendMessageQueue.Arn
           batchSize: 1
+          maximumConcurrency: 3
 
 resources:
   Resources:
