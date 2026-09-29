@@ -49,7 +49,30 @@ plugins:
 functions:
   api:
     handler: dist/src/main/api.handler
+    environment:
+      SEND_MESSAGE_QUEUE_URL: !Ref SendMessageQueue
     events:
       - httpApi:
           path: /webhooks/z-api/received/{webhookSecret}
           method: post
+
+  sendMessage:
+    handler: dist/src/main/send-message.handler
+    events:
+      - sqs:
+          arn: !GetAtt SendMessageQueue.Arn
+          batchSize: 1
+
+resources:
+  Resources:
+    SendMessageDlq:
+      Type: AWS::SQS::Queue
+      Properties:
+        MessageRetentionPeriod: 1209600
+    SendMessageQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        VisibilityTimeout: 180
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt SendMessageDlq.Arn
+          maxReceiveCount: 3

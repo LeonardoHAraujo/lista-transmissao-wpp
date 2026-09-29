@@ -35,9 +35,13 @@
 <a name="broadcast" />
 <h2 align=""><b>Disparo a partir de grupo (lista nativa Z-API)</b></h2>
 
-Quando alguém envia uma imagem (com caption) no grupo monitorado, o webhook encaminha essa mensagem para as listas de transmissão nativas configuradas em `BROADCAST_IDS`.
+Quando alguém envia uma imagem (com ou sem caption) ou um texto no grupo monitorado, o webhook lista as listas de transmissão, filtra as de `BROADCAST_IDS`, publica um número por mensagem no SQS e um segundo lambda envia para cada número.
 
 Endpoint: `POST /webhooks/z-api/received/{Z_API_WEBHOOK_SECRET}`
+
+- Imagem com caption usa `send-image` com caption.
+- Imagem sem caption usa `send-image`.
+- Texto usa `send-text`.
 
 ### Checklist de setup Z-API
 
@@ -48,6 +52,6 @@ Endpoint: `POST /webhooks/z-api/received/{Z_API_WEBHOOK_SECRET}`
    `https://{apiId}.execute-api.{region}.amazonaws.com/webhooks/z-api/received/{Z_API_WEBHOOK_SECRET}`
    Sem esse webhook, o endpoint [forward-message](https://developer.z-api.io/message/forward-message) não encaminha.
 5. `IGNORE_FROM_ME` fica `true` por padrão (ignora mensagens do próprio número). Se o post de origem for feito pelo número conectado, habilitar “notificar enviadas por mim” na Z-API e setar `IGNORE_FROM_ME=false`.
-6. Teste real: enviar **uma** imagem com caption no grupo e conferir o recebimento em 1–2 números das listas antes de usar a base completa.
+6. Teste real: enviar **uma** imagem ou texto no grupo e conferir o recebimento em 1–2 números das listas antes de usar a base completa.
 
-Eventos que não são imagem do grupo configurado respondem `200` e são ignorados. Falha de encaminhamento em uma lista não interrompe as demais.
+Eventos que não são imagem ou texto do grupo configurado respondem `200` e são ignorados. Falha ao listar as listas ou ao publicar na fila responde `500`. Falha de envio em um número volta para a fila e, após 3 tentativas, vai para a DLQ.
