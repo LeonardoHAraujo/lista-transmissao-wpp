@@ -54,4 +54,5 @@ Endpoint: `POST /webhooks/z-api/received/{Z_API_WEBHOOK_SECRET}`
 5. `IGNORE_FROM_ME` fica `true` por padrão (ignora mensagens do próprio número). Se o post de origem for feito pelo número conectado, habilitar “notificar enviadas por mim” na Z-API e setar `IGNORE_FROM_ME=false`.
 6. Teste real: enviar **uma** imagem ou texto no grupo e conferir o recebimento em 1–2 números das listas antes de usar a base completa.
 
+
 Eventos que não são imagem ou texto do grupo configurado respondem `200` e são ignorados. Falha ao listar as listas ou ao publicar na fila responde `500`. Falha de envio em um número volta para a fila e, após 3 tentativas, vai para a DLQ.
